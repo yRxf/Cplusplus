@@ -1,0 +1,211 @@
+#include<iostream>
+#include<Windows.h>
+#include<conio.h>
+#include<vector>
+using namespace std;
+HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);//全局句柄
+enum direction { No = -6, backspace = -1, Yes = 0, go_up, go_left, go_right, go_down }go_string;
+void KeyConctrl(int _key);
+void setPos(COORD pos);
+void gogogo();
+void write(COORD);
+void gotoPos(SHORT x, SHORT y);
+COORD GetXY();
+vector<string> str;
+static int count = 0;
+bool is_back = false;
+string code[3][10]{
+		{"A","B","C","D","E","F","G","H","I","J"},
+		{"K","L","M","N","O","P","Q","R","S","T"},
+		{"U","V","W","X","Y","Z","_"," ","←"," "}
+};
+int main()
+{
+	CONSOLE_CURSOR_INFO _guan_biao = { 1, FALSE };
+	SetConsoleCursorInfo(hOut, &_guan_biao);
+	for (auto &h : code){
+		for (auto &s : h) {
+			cout << " " << s;
+		}
+		cout << "\n";
+	}
+	COORD pos = { 2, 0 };
+	setPos(pos);
+	cout << "[";
+	pos.X += 2;
+	setPos(pos);
+	cout << "]";
+	while (1)
+	{
+		if (_kbhit()) {
+			int key = _getch();
+			if (key == '#')
+				break;
+			cout.flush();
+			KeyConctrl(key);//处理按键
+		} 
+		Sleep(10);
+	}
+	setPos({ 1,12 });
+	for (auto& s : str)
+		cout << s;
+	return 0;
+}
+void setPos(COORD pos) {
+	SetConsoleCursorPosition(hOut, pos);
+}
+void gotoPos(SHORT x, SHORT y) {
+	COORD pos = { x, y };
+	SetConsoleCursorPosition(hOut, pos);
+}
+void KeyConctrl(int _key)
+{
+	go_string = No;
+	is_back = false;
+	switch (_key) {
+	case ' ':
+	case 'Z':
+	case 'z':
+		go_string = Yes;
+		break;
+	case 'x':
+	case 'X':
+		go_string = backspace;
+		break;
+	case 72:
+		go_string = go_up;
+		break;
+	case 75:
+		go_string = go_left;
+		break;
+	case 77:
+		go_string = go_right;
+		break;
+	case 80:
+		go_string = go_down;
+		break;
+	}
+	gogogo();
+}
+
+void gogogo()
+{
+	COORD this_ind = GetXY();
+	COORD cle_ind = this_ind;
+	switch (go_string)
+	{
+	case backspace:
+		is_back = true;
+		write(this_ind);
+		break;
+	case Yes:
+		write(this_ind);
+		break;
+	case go_up:
+		if (this_ind.Y > 0)
+		{
+			this_ind.X -= 1;
+			setPos(this_ind);
+			cout << " ";
+			this_ind.X -= 2;
+			setPos(this_ind);
+			cout << " ";
+			--this_ind.Y;
+			setPos(this_ind);
+			cout << "[";
+			this_ind.X += 2;
+			setPos(this_ind);
+			cout << "]";
+		}
+		break;
+	case go_left:
+		if (this_ind.X > 3) {
+			this_ind.X -= 1;
+			setPos(this_ind);
+			cout << " ";
+			this_ind.X -= 4;
+			setPos(this_ind);
+			cout << "[";
+			this_ind.X += 2;
+			setPos(this_ind);
+			cout << "]";
+		}
+		break;
+	case go_right:
+		if (this_ind.Y == 2) {
+			if (this_ind.X < 19) {
+				this_ind.X -= 1;
+				setPos(this_ind);
+				cout << "[";
+				this_ind.X -= 2;
+				setPos(this_ind);
+				cout << " ";
+				this_ind.X += 4;
+				setPos(this_ind);
+				cout << "]";
+			}
+		}
+		else
+		{
+			if (this_ind.X < 21) {
+				this_ind.X -= 1;
+				setPos(this_ind);
+				cout << "[";
+				this_ind.X -= 2;
+				setPos(this_ind);
+				cout << " ";
+				this_ind.X += 4;
+				setPos(this_ind);
+				cout << "]";
+			}
+		}
+		
+		break;
+	case go_down:
+		if (this_ind.Y < 2)
+		{
+			this_ind.X -= 1;
+			setPos(this_ind);
+			cout << " ";
+			this_ind.X -= 2;
+			setPos(this_ind);
+			cout << " ";
+			++this_ind.Y;
+			setPos(this_ind);
+			cout << "[";
+			this_ind.X += 2;
+			setPos(this_ind);
+			cout << "]";
+		}
+		break;
+	}
+}
+
+COORD GetXY()
+{
+	CONSOLE_SCREEN_BUFFER_INFO pBuffer;
+	GetConsoleScreenBufferInfo(hOut, &pBuffer);
+	return pBuffer.dwCursorPosition;
+}
+
+void write(COORD pos){
+	COORD pos1 = { 10 + ::count, 10};
+	setPos(pos1);
+	string str = code[pos.Y][((pos.X - 1) / 2 - 1)];
+	if (str == "←" or is_back) {
+		if (pos1.X > 10) {
+			--::count;
+			--pos1.X;
+			setPos(pos1);
+		}
+		cout << " ";
+		::str.pop_back();
+	}
+	else
+	{
+		cout << str;
+		::str.push_back(str);
+		++::count;
+	}
+	setPos(pos);
+}

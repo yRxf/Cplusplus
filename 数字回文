@@ -1,0 +1,25 @@
+#include<iostream>
+int main()
+{
+	std::cout << "请输入你要校验的数字，输入其他字符回车结束\n";
+	char ch;
+	std::string str = "";
+	bool is_hw = true;
+	while (std::cin >> ch && ch >= '0' && ch <= '9')
+		str += ch;
+	if (str == "")
+	{
+		std::cout << "请输入正确的数字！";
+		return -1;
+	}
+	for (auto beg = str.begin(), end = str.end() - 1; beg != end && beg < end; ++beg, --end)
+	{
+		if (*beg != *end)
+		{
+			is_hw = false;
+			break;
+		}
+	}
+	std::cout << str << (is_hw ? "是回文！" : "不是回文");
+	return 0;
+}
